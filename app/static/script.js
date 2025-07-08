@@ -4,24 +4,13 @@ const sendButton = document.getElementById("send-button");
 const voiceButton = document.getElementById("voice-button");
 const loader = document.getElementById("loader");
 
-// Append message to chat
-/*
-function appendMessage(role, text) {
-  const div = document.createElement("div");
-  div.className = `message ${role}`;
-  div.innerText = text;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-*/
-
 function appendMessage(role, content) {
   const div = document.createElement("div");
   div.className = `message ${role}`;
 
   if (role === "bot" && typeof content === "object" && content.orders) {
     const title = document.createElement("p");
-    title.innerText = "🧾 Your order :";
+    title.innerText = "🧾 Your order:";
     div.appendChild(title);
 
     content.orders.forEach(order => {
@@ -35,10 +24,10 @@ function appendMessage(role, content) {
       card.style.alignItems = "center";
       card.style.backgroundColor = "#fff";
 
-      if (order.image_url) {
+      if (order.image || order.image_url) {
         const img = document.createElement("img");
-        img.src = order.image_url;
-        img.alt = order.item;
+        img.src = order.image || order.image_url;
+        img.alt = order.title || order.item || "image";
         img.style.width = "60px";
         img.style.height = "60px";
         img.style.borderRadius = "8px";
@@ -47,7 +36,9 @@ function appendMessage(role, content) {
       }
 
       const desc = document.createElement("div");
-      desc.innerHTML = `<strong>${order.item}</strong><br/>Jumlah: ${order.quantity}`;
+      const title = order.title || order.item || "Item";
+      const quantity = order.subtitle || order.quantity || "1 pcs";
+      desc.innerHTML = `<strong>${title}</strong><br/>Jumlah: ${quantity}`;
       card.appendChild(desc);
 
       div.appendChild(card);
@@ -58,17 +49,15 @@ function appendMessage(role, content) {
       waktu.innerHTML = `🕒 Waktu antar: <strong>${content.delivery_time}</strong>`;
       div.appendChild(waktu);
     }
-
   } else {
- 
-    div.innerText = typeof content === "string" ? content : JSON.stringify(content, null, 2);
+    div.innerHTML = typeof content === "string"
+      ? marked.parse(content)
+      : `<pre>${JSON.stringify(content, null, 2)}</pre>`;
   }
 
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
-
-
 
 async function sendMessage(text) {
   if (!text.trim()) return;
@@ -87,15 +76,25 @@ async function sendMessage(text) {
     });
 
     const data = await res.json();
-    if (data.response) {
-		
-		  appendMessage("bot", data.response);
-		}
 
-		if (data.slots && data.slots.orders) {
-		  
-		  appendMessage("bot", data.slots);
-		}
+    if (data.response) {
+      // Handle string response
+      if (typeof data.response === "string") {
+        appendMessage("bot", data.response);
+      }
+      // Handle structured response with text + render
+      else {
+        if (data.response.text) {
+          appendMessage("bot", data.response.text);
+        }
+        if (data.response.render?.type === "order_summary") {
+          appendMessage("bot", {
+            orders: data.response.render.orders,
+            delivery_time: data.response.render.delivery_time
+          });
+        }
+      }
+    }
 
   } catch (err) {
     appendMessage("bot", "⚠️ Error contacting server.");
@@ -154,7 +153,21 @@ voiceButton.addEventListener("click", async () => {
 
       const data = await res.json();
       appendMessage("user", data.transcription || "[Voice not recognized]");
-      appendMessage("bot", data.response || "[No response]");
+
+      if (typeof data.response === "string") {
+        appendMessage("bot", data.response);
+      } else {
+        if (data.response.text) {
+          appendMessage("bot", data.response.text);
+        }
+        if (data.response.render?.type === "order_summary") {
+          appendMessage("bot", {
+            orders: data.response.render.orders,
+            delivery_time: data.response.render.delivery_time
+          });
+        }
+      }
+
     } catch (err) {
       appendMessage("bot", "🎤 Voice error.");
       console.error(err);
@@ -170,5 +183,5 @@ voiceButton.addEventListener("click", async () => {
   setTimeout(() => {
     mediaRecorder.stop();
     stream.getTracks().forEach((track) => track.stop());
-  }, 4000); 
+  }, 4000);
 });
