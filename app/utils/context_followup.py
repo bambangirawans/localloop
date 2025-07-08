@@ -26,6 +26,10 @@ def is_contextual_followup(message: str, user_id: str, threshold: float = 0.70) 
     if len(message.split()) <= 4:
         message_embedding = embedding_model.encode(message, convert_to_tensor=True)
         similarities = util.cos_sim(message_embedding, FOLLOWUP_EMBEDDINGS)[0]
+        try:
+            threshold = float(threshold)
+        except ValueError:
+            threshold = 0.7
         if float(similarities.max()) > threshold:
             return True
 

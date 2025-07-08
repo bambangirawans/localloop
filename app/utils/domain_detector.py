@@ -111,6 +111,8 @@ def detect_domain(message: str, threshold: float = 0.6, top_k: int = 3, debug: b
 
     for domain, keywords in DOMAIN_CANDIDATES.items():
         if any(kw in normalized_msg for kw in keywords):
+            if debug:
+                print(f"[DomainDetection] ✅ Rule-based match: '{domain}'")
             return domain
 
     input_vec = embedding_model.encode(normalized_msg, convert_to_tensor=True)
@@ -125,7 +127,7 @@ def detect_domain(message: str, threshold: float = 0.6, top_k: int = 3, debug: b
         if score.item() > max_score:
             max_score = score.item()
             best_domain = domain
-
+ 
     if max_score >= threshold:
         return best_domain
 
@@ -139,5 +141,4 @@ def detect_domain(message: str, threshold: float = 0.6, top_k: int = 3, debug: b
     if guessed_intent:
         domain = fallback_map.get(guessed_intent, "general")
         return domain
-
     return "general"
