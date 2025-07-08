@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register – LocalLoop</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📝 Register</h1>
+      <p>Create your LocalLoop account</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="auth-form">
+      <label for="full_name">Full Name</label>
+      <input type="text" name="full_name" required>
+
+      <label for="phone">Phone Number</label>
+      <input type="tel" name="phone" required>
+
+      <label for="password">Password</label>
+      <input type="password" name="password" required>
+
+      <button type="submit">Register</button>
+    </form>
+
+    <p style="text-align:center; margin-top: 1rem;">
+      Already have an account? <a href="/login">Login here</a>.
+    </p>
+  </div>
+</body>
+</html>

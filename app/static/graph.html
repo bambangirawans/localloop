@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 650px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97C2FC", "id": "http://example.org/user_001", "label": "user_001", "shape": "ellipse", "title": "Subject: http://example.org/user_001"}, {"color": "#FB7E81", "id": "promo nasi goreng", "label": "promo nasi goreng", "shape": "box", "title": "Object: promo nasi goreng"}, {"color": "#FB7E81", "id": "kamera mirrorless", "label": "kamera mirrorless", "shape": "box", "title": "Object: kamera mirrorless"}, {"color": "#FB7E81", "id": "Budi", "label": "Budi", "shape": "box", "title": "Object: Budi"}, {"color": "#FB7E81", "id": "nasi padang", "label": "nasi padang", "shape": "box", "title": "Object: nasi padang"}, {"color": "#FB7E81", "id": "http://xmlns.com/foaf/0.1/Person", "label": "http://xmlns.com/foaf/0.1/Person", "shape": "box", "title": "Object: http://xmlns.com/foaf/0.1/Person"}, {"color": "#FB7E81", "id": "elektronik", "label": "elektronik", "shape": "box", "title": "Object: elektronik"}, {"color": "#FB7E81", "id": "makanan jepang", "label": "makanan jepang", "shape": "box", "title": "Object: makanan jepang"}, {"color": "#eee", "fixed": true, "id": "Legend", "label": "Legend:\n\ud83d\udd35 Person\n\ud83d\udfe6 Preference\n\ud83d\udfe5 Search", "physics": false, "shape": "box", "x": -300, "y": -200}]);
+                  edges = new vis.DataSet([{"arrows": "to", "color": "#888", "from": "http://example.org/user_001", "label": "recent_search", "title": "http://example.org/pref/recent_search", "to": "promo nasi goreng"}, {"arrows": "to", "color": "#888", "from": "http://example.org/user_001", "label": "recent_search", "title": "http://example.org/pref/recent_search", "to": "kamera mirrorless"}, {"arrows": "to", "color": "#888", "from": "http://example.org/user_001", "label": "name", "title": "http://xmlns.com/foaf/0.1/name", "to": "Budi"}, {"arrows": "to", "color": "#888", "from": "http://example.org/user_001", "label": "likes", "title": "http://example.org/pref/likes", "to": "nasi padang"}, {"arrows": "to", "color": "#888", "from": "http://example.org/user_001", "label": "22-rdf-syntax-ns#type", "title": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "to": "http://xmlns.com/foaf/0.1/Person"}, {"arrows": "to", "color": "#888", "from": "http://example.org/user_001", "label": "likes", "title": "http://example.org/pref/likes", "to": "elektronik"}, {"arrows": "to", "color": "#888", "from": "http://example.org/user_001", "label": "likes", "title": "http://example.org/pref/likes", "to": "makanan jepang"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"edges": {"color": {"inherit": true}, "smooth": false}, "physics": {"enabled": true, "barnesHut": {"gravitationalConstant": -8000, "centralGravity": 0.3, "springLength": 95}}, "interaction": {"hover": true, "tooltipDelay": 200, "navigationButtons": true, "keyboard": true}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,57 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LocalLoop – Smart Commerce Agent</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🤖 LocalLoop</h1>
+      <p>AI Agent for Shopping, Travel, and Food</p>
+      <nav>
+        {% if session.get("user_id") %}
+          👋 Welcome, {{ session.get("user_name", "User") }} |
+          <a href="/logout">Logout</a> |
+          <a href="/graph">View Graph</a>
+        {% else %}
+          <a href="/register">Register</a> |
+          <a href="/login">Login</a> |
+        {% endif %}
+      </nav>
+    </header>
+
+    <main>
+      <div id="chat-box" class="chat-box"></div>
+
+      <div id="loader" class="loader" style="display: none;">⏳ Loading...</div>
+
+      <div class="input-area">
+        <input id="user-input" type="text" placeholder="Ask me anything..." autocomplete="off"/>
+        <div class="button-group">
+          <button id="send-button">Send</button>
+          <button id="voice-button">🎤 Voice</button>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <small>
+        <a href="https://github.com/your-repo" target="_blank">GitHub</a> •
+        <a href="#">Demo</a> •
+        <a href="#">Presentation</a>
+      </small>
+    </footer>
+  </div>
+
+  <script>
+   const USER_ID = "{{ session.get('phone', 'anonymous_user') }}";
+  </script>
+  <script src="/static/script.js"></script>
+</body>
+</html>
+
+
