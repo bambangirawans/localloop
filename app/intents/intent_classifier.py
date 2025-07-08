@@ -1,5 +1,3 @@
-# app/intents/intent_classifier.py
-
 from sentence_transformers import SentenceTransformer, util
 from typing import List, Optional
 import torch
@@ -7,65 +5,69 @@ import torch
 intent_labels = [
     "order_food", "find_restaurant", "recommendation",
     "book_flight", "find_hotel", "travel_recommendation",
-    "buy_product", "search_product", "product_recommendation"
+    "buy_product", "search_product", "product_recommendation",
+    "payment_info", "calculate_total", "real_delivery_eta",
+    "cancel_order", "delivery_info"
 ]
 
 intent_examples = {
     "order_food": [
-        "I'd like to order food", "pesan makanan", "I want sushi", "beli makanan",
-        "delivery pizza", "mau makan ayam", "order makanan", "mau gofood",
-        "pesan gofood", "beli makanan online", "order grabfood", "lagi lapar nih",
-        "antar makanan ke rumah", "makanannya apa ya?", "lagi pengen mie"
+        "Saya ingin pesan makanan", "I'd like to order food", "Saya mau sushi", "I want sushi",
+        "Pesan makanan online", "Order food delivery", "Saya lapar", "I'm hungry",
+        "Bisa gofood?", "Order makanan lewat gofood", "Delivery makanan", "Order makanan sekarang"
     ],
     "find_restaurant": [
-        "cari restoran", "restaurant near me", "tempat makan enak", "restoran terdekat",
-        "find place to eat", "mau makan di luar", "cari tempat makan",
-        "tempat makan malam romantis", "restoran yang buka sekarang", "ada restoran enak?",
-        "dimana tempat makan enak?", "tempat makan keluarga", "resto enak di jakarta",
-        "restoran all you can eat"
+        "Cari restoran enak", "Find a good restaurant", "Restoran dekat sini", "Restaurant near me",
+        "Tempat makan malam", "Dinner place", "Tempat makan keluarga", "Family dining place",
+        "Ada restoran romantis?", "Romantic restaurant nearby"
     ],
     "recommendation": [
-        "makan apa ya?", "recommend me something", "saran makanan", "kasih rekomendasi makanan",
-        "any good food?", "what do you recommend?", "kasih ide makan siang",
-        "rekomendasi makanan enak", "bingung mau makan apa", "mau yang pedas",
-        "ada rekomendasi makan malam?", "suggest makanan simple", "what's good to eat?"
+        "Rekomendasi makanan", "Food recommendation", "Saya bingung mau makan apa", "I don't know what to eat",
+        "Makanan enak apa ya?", "Any good food?", "Mau yang pedas", "I want something spicy"
+    ],
+    "payment_info": [
+        "Bisa bayar pakai apa?", "What payment methods are available?", "Ada pembayaran via QRIS?", "Can I use QRIS?",
+        "Metode pembayaran", "Payment options", "Apakah GoPay diterima?", "Is GoPay accepted?"
+    ],
+    "calculate_total": [
+        "Berapa totalnya?", "How much is the total?", "Total semua berapa?", "What's the full price?",
+        "Estimasi harga pesanan", "Order cost estimate", "Harga total makanan", "Total food price"
+    ],
+    "real_delivery_eta": [
+        "Kapan sampai?", "When will it arrive?", "Estimasi waktu pengiriman", "Estimated delivery time",
+        "Berapa menit makanan sampai?", "How long for delivery?", "Lama pengiriman", "Delivery duration"
+    ],
+    "cancel_order": [
+        "Batalkan pesanan", "Cancel my order", "Saya gak jadi pesan", "I changed my mind",
+        "Reset pesanan", "Remove my order", "Hapus pesanan", "Delete my order"
+    ],
+    "delivery_info": [
+        "Alamat pengiriman saya", "My delivery address", "Dikirim ke mana?", "Where is it being sent?",
+        "Lokasi saya sekarang", "My current location", "Antar ke alamat ini", "Deliver to this address"
     ],
     "book_flight": [
-        "book a flight", "pesan tiket pesawat", "I want to fly", "terbang ke bali",
-        "cari penerbangan", "beli tiket pesawat", "flight to Jakarta",
-        "booking tiket ke surabaya", "penerbangan murah", "tiket promo pesawat",
-        "jadwal pesawat hari ini", "mau ke bandara", "beli tiket pp jakarta bali"
+        "Pesan tiket pesawat", "Book a flight", "Saya ingin ke Bali", "I want to go to Bali",
+        "Cari penerbangan murah", "Find a cheap flight", "Tiket ke Jakarta", "Flight to Jakarta"
     ],
     "find_hotel": [
-        "cari hotel", "hotel murah di bali", "find me a place to stay", "penginapan di ubud",
-        "booking hotel", "akomodasi murah", "tempat menginap", "cari homestay",
-        "hotel yang dekat pantai", "hotel bintang 5", "budget hotel", "hostel murah",
-        "penginapan dekat bandara", "hotel untuk keluarga"
+        "Cari hotel", "Find hotel", "Hotel murah di Bandung", "Cheap hotel in Bandung",
+        "Akomodasi dekat pantai", "Accommodation near beach", "Booking penginapan", "Book a place to stay"
     ],
     "travel_recommendation": [
-        "tempat liburan", "where should I go?", "tourist spot", "rekomendasi destinasi",
-        "tempat wisata bagus", "liburan kemana ya?", "travel ideas",
-        "rekomendasi tempat traveling", "spot wisata populer", "liburan keluarga kemana?",
-        "cari tempat healing", "tujuan wisata", "short getaway ideas"
+        "Rekomendasi tempat liburan", "Vacation recommendation", "Tempat wisata terbaik", "Best tourist destinations",
+        "Liburan keluarga kemana?", "Where should we go for a family trip?", "Spot healing", "Nice relaxing spot"
     ],
     "buy_product": [
-        "beli hp", "buy phone", "shopping online", "mau beli baju", "pesan laptop",
-        "belanja elektronik", "buy shoes", "beli sepatu online", "beli barang di tokopedia",
-        "checkout di shopee", "beli barang ini", "beli produk kecantikan", "shopping time",
-        "mau order barang ini", "beli mainan anak", "order sepatu nike", "beli earphone bluetooth"
+        "Saya mau beli barang", "I want to buy a product", "Beli HP baru", "Buy new phone",
+        "Belanja online", "Online shopping", "Order sepatu", "Order shoes"
     ],
     "search_product": [
-        "cari barang", "search product", "product lookup", "nyari tas online",
-        "cari barang elektronik", "search for item", "cari produk diskon",
-        "nyari barang murah", "cari hp second", "search gadget", "cari barang di marketplace",
-        "apa ada diskon?", "barang promo hari ini", "lihat produk ini"
+        "Cari produk murah", "Search for cheap product", "Nyari barang promo", "Looking for deals",
+        "Cari barang elektronik", "Search for electronics", "Lihat produk ini", "Show me this product"
     ],
     "product_recommendation": [
-        "produk bagus", "recommend product", "apa yang terbaik?", "rekomendasi gadget",
-        "best product", "what should I buy?", "produk terbaik apa ya?",
-        "barang recommended", "apa hp terbaik 2025?", "rekomendasi laptop untuk kerja",
-        "minta saran beli barang", "produk terbaik di shopee", "barang yang lagi tren",
-        "apa yang paling worth it?", "best value product"
+        "Rekomendasi produk terbaik", "Best product recommendation", "Apa yang paling worth it?", "What’s the best value?",
+        "Barang yang bagus apa ya?", "Any good item?", "Saran beli gadget", "Recommend a gadget"
     ]
 }
 
@@ -73,6 +75,11 @@ intent_domains = {
     "order_food": "food",
     "find_restaurant": "food",
     "recommendation": "food",
+    "payment_info": "food",
+    "calculate_total": "food",
+    "real_delivery_eta": "food",
+    "cancel_order": "food",
+    "delivery_info": "food",
     "book_flight": "travel",
     "find_hotel": "travel",
     "travel_recommendation": "travel",
@@ -86,7 +93,7 @@ domain_keywords = {
         "makan", "makanan", "pesan makanan", "restoran", "tempat makan", "antar makanan", "kuliner",
         "menu", "lapar", "sarapan", "makan siang", "makan malam", "warung",
         "food", "eat", "hungry", "order food", "delivery", "restaurant", "dinner", "lunch", "breakfast",
-        "meal", "place to eat"
+        "meal", "place to eat", "bayar", "qris", "gopay", "ovo", "total", "alamat", "waktu pengiriman", "batal", "cancel"
     ],
     "travel": [
         "hotel", "penginapan", "liburan", "perjalanan", "pesawat", "tiket", "terbang", "bandara", "check in",
@@ -133,9 +140,5 @@ def classify_intent(message: str, threshold: float = 0.55, mode: str = "text") -
         if score > best_score:
             best_score = score
             selected_intent = intent
-        try:
-            threshold = float(threshold)
-        except (ValueError, TypeError):
-            threshold = 0.55
-    return selected_intent if best_score > threshold else None
 
+    return selected_intent if best_score > threshold else None
