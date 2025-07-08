@@ -105,12 +105,13 @@ def run_orchestrated_agent(message: str, user_id: str = "anonymous_user", mode: 
 
     if is_contextual_followup(message, user_id, mode):
         contextual_prompt = get_contextual_prompt(user_id)
-        response = ask_llama(f"{contextual_prompt}\nUser: {message}\nAssistant:", user_id)
+        response = ask_llama(f"{contextual_prompt}\nUser: {message}\nAssistant:")
         return format_final_response(response, lang, user_id, domain, message)
 
     final_prompt = build_llm_prompt(message, user_id, domain)
-    response = ask_llama(final_prompt, user_id)
-
+ 
+    response = ask_llama(final_prompt)
+ 
     detected_intent = classify_intent(message, mode=mode)
     slots = handler.slots.extract_slots(detected_intent, message) if detected_intent else {}
 
@@ -120,6 +121,7 @@ def run_orchestrated_agent(message: str, user_id: str = "anonymous_user", mode: 
             return handler.handle(detected_intent, slots, user_id)
 
     if not detected_intent:
+        print("[Intent] Tidak ada intent jelas. Gunakan external search.")
         external_info = enrich_with_external_search(message)
         return format_final_response("🔍 Let me find the answer for you..." + external_info, lang, user_id, domain, message)
 
@@ -161,7 +163,7 @@ def format_final_response(response: str, lang: str, user_id: str, domain: str, m
     return "\n\n".join(sections).strip()
 
 
-def enrich_with_external_search(query: str) -> str:
+def enrich_with_external_search_original(query: str) -> str:
     tavily_result = use_tavily(query)
     serpapi_result = use_serpapi_search(query)
 
@@ -178,6 +180,35 @@ def default_fallback(message: str) -> str:
         if lang == "id"
         else "Sorry, I'm not sure what you meant. Could you please clarify?"
     )
+
+def enrich_with_external_search(query: str) -> str:
+ 
+    tavily_result = use_tavily(query)
+    serpapi_result = use_serpapi_search(query)
+
+    if not tavily_result and not serpapi_result:
+        return ""
+
+
+    combined_results = ""
+    if tavily_result:
+        combined_results += f"Tavily:\n{tavily_result.strip()}\n\n"
+    if serpapi_result:
+        combined_results += f"SERP:\n{serpapi_result.strip()}\n"
+
+     reformulation_prompt = (
+        f"You are a helpful assistant. A user asked a question and external sources returned raw information.\n"
+        f"Your task is to rewrite and summarize the information into a clear, relevant, and natural-sounding response to the user's question.\n\n"
+        f"User question: {query}\n\n"
+        f"Raw external info:\n{combined_results.strip()}\n\n"
+        f"Write a helpful, concise response to the user using only what's relevant from the info above."
+    )
+
+    refined_response = ask_llama(reformulation_prompt).strip()
+    if not refined_response or "no useful" in refined_response.lower():
+        return ""
+
+    return f"\n\n🔍 Extra info:\n{refined_response}"
 
 
 def build_llm_prompt(message: str, user_id: str, domain: str) -> str:
